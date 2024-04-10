@@ -30,6 +30,6 @@ abstract class NetworkComponentContext(context: ComponentContext) : ComponentCon
                     }
                 }
             }
-        }
+        }.join()
     }
 }

@@ -26,9 +26,10 @@ class FakeProductRepositoryImpl: IProductRepository {
         return flowOf(filteredList.right())
     }
 
-    override suspend fun changeProductById(id: Int, newProduct: StoredProduct) {
+    override suspend fun updateStoredProduct(newProduct: StoredProduct) {
         TODO("Not yet implemented")
     }
+    
 
     override suspend fun deleteProductById(id: Int) {
         TODO("Not yet implemented")

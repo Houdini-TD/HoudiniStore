@@ -28,22 +28,35 @@ class LocalProductRepository(private val productDao: ProductDao) : IProductRepos
         }
     }
 
-    override suspend fun getProducts(): Flow<Either<String, List<ProductSpecs>>> {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun getProductsByEan(ean: ProductEAN): Flow<Either<String, List<StoredProduct>>> {
-        TODO("Not yet implemented")
+        return withContext(Dispatchers.IO){
+            return@withContext flow {
+                emit(Either.Left("Waiting"))
+                try {
+                    emit(Either.Right(productDao.getDetailedProductsByEan(ean).toStoredProduct()))
+                } catch (e: Exception){
+                    emit(Either.Left(e.message.toString()))
+                }
+            }
+        }
     }
 
-    override suspend fun changeProductById(id: Int, newProduct: StoredProduct) {
-        TODO("Not yet implemented")
+    override suspend fun updateStoredProduct(newProduct: StoredProduct) {
+        withContext(Dispatchers.IO){
+            productDao.changeProductStorage(newProduct.toProductInStock())
+        }
     }
 
     override suspend fun deleteProductById(id: Int) {
-        TODO("Not yet implemented")
+        withContext(Dispatchers.IO){
+            productDao.deleteProductFromStockById(id)
+        }
     }
 
+
+    override suspend fun getProducts(): Flow<Either<String, List<ProductSpecs>>> {
+        TODO("Not yet implemented")
+    }
     override suspend fun getPendingProductsAmount(): Flow<Either<String, Int>> {
         TODO("Not yet implemented")
     }

@@ -49,6 +49,7 @@ import domain.product.StoredProduct
 import kotlinx.coroutines.Dispatchers
 import presentation.MyTextField
 import ru.mobileup.template.core.theme.custom.CustomTheme
+import java.text.SimpleDateFormat
 
 
 @Composable
@@ -86,7 +87,11 @@ fun ProductDetailsScreenUI(component: IProductDetailsScreen) {
                     modifier = Modifier.fillMaxSize()
                 ) {
                     ProductCard(productState[0].specs)
-                    DetailedProductList(products = productState)
+                    DetailedProductList(
+                        products = productState,
+                        cardSaveCallback = component::updateProduct,
+                        onDeleteCallback = component::onProductDelete
+                    )
                 }
             }
         }
@@ -94,20 +99,33 @@ fun ProductDetailsScreenUI(component: IProductDetailsScreen) {
 }
 
 @Composable
-fun DetailedProductList(products: List<StoredProduct>) {
+fun DetailedProductList(
+    products: List<StoredProduct>,
+    cardSaveCallback: (StoredProduct) -> Unit,
+    onDeleteCallback: (Int) -> Unit) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
         items(products.size) { id ->
-            DetailedProductCard(product = products[id])
+            DetailedProductCard(
+                product = products[id],
+                cardSaveCallback,
+                onDeleteCallback
+            )
         }
     }
 }
 
 @Composable
-fun DetailedProductCard(product: StoredProduct) {
+fun DetailedProductCard(
+    product: StoredProduct,
+    onSaveCallback: (StoredProduct) -> Unit,
+    onDeleteCallback: (Int) -> Unit) {
+
+    var currentProduct by remember { mutableStateOf(product) }
+
     Surface (
         border = BorderStroke(width = 2.dp, Color.LightGray)
     ) {
@@ -121,11 +139,11 @@ fun DetailedProductCard(product: StoredProduct) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "От " + product.productionDate.toString(),
+                    text = "От " + currentProduct.productionDate,
                     style = CustomTheme.typography.title.regular
                 )
 
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = { onDeleteCallback(currentProduct.id) }) {
                     Icon(
                         imageVector = Icons.Filled.Delete,
                         tint = CustomTheme.colors.icon.primary,
@@ -148,9 +166,12 @@ fun DetailedProductCard(product: StoredProduct) {
                     }
                 }
 
+
+                var shelfState by remember { mutableStateOf(currentProduct.shelf) }
+                var amountState by remember { mutableStateOf(currentProduct.amount) }
+
                 Column {
 
-                    var amountState by remember { mutableStateOf(product.amount) }
                     Text(
                         text = "Количество: "
                     )
@@ -161,7 +182,7 @@ fun DetailedProductCard(product: StoredProduct) {
                         onValueChange = {
                             if (it.length < 4) {
                                 amountState = it.toIntOrNull() ?: 0
-                                amountChangedState = it != product.amount.toString()
+                                amountChangedState = it != currentProduct.amount.toString()
                             }
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -174,7 +195,7 @@ fun DetailedProductCard(product: StoredProduct) {
                         text = " Полка: "
                     )
 
-                    var shelfState by remember { mutableStateOf(product.shelf) }
+
                     MyTextField(
                         placeholderText = "000",
                         modifier = Modifier.width(48.dp),
@@ -182,7 +203,7 @@ fun DetailedProductCard(product: StoredProduct) {
                         onValueChange = {
                             if (it.length < 4) {
                                 shelfState = it.toIntOrNull() ?: 0
-                                shelfChangedState = it != product.shelf.toString()
+                                shelfChangedState = it != currentProduct.shelf.toString()
                             }
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -194,7 +215,14 @@ fun DetailedProductCard(product: StoredProduct) {
 
                 if ((shelfChangedState || amountChangedState)){
                     Button(
-                        onClick = { /*TODO*/ },
+                        onClick = {
+                            val updatedProduct = product.copyWith(shelf = shelfState, amount = amountState)
+                            onSaveCallback(updatedProduct)
+                            currentProduct = updatedProduct
+
+                            shelfChangedState = false
+                            amountChangedState = false
+                                  },
                         colors = ButtonDefaults.buttonColors(
                             backgroundColor = CustomTheme.colors.button.primary
                         )

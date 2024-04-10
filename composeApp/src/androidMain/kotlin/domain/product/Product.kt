@@ -19,4 +19,14 @@ data class StoredProduct(
     val amount: Int,
     val shelf: Int,
     val productionDate: Date
-)
+){
+    fun copyWith(
+        id: Int = this.id,
+        specs: ProductSpecs = this.specs,
+        amount: Int = this.amount,
+        shelf: Int = this.shelf,
+        productionDate: Date = this.productionDate
+    ): StoredProduct {
+        return StoredProduct(id, specs, amount, shelf, productionDate)
+    }
+}

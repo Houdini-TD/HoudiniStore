@@ -24,8 +24,8 @@ class FakeProductDetailsScreen : IProductDetailsScreen  {
     override fun onRefresh() = Unit
 
     override fun loadProducts(productEan: ProductEAN) = Unit
-
-    override fun saveProductChanged(id: Int, newAmount: Int, newShelf: Int) = Unit
-
+    override fun updateProduct(newProduct: StoredProduct) {
+        TODO("Not yet implemented")
+    }
     override fun onProductDelete(id: Int) = Unit
 }

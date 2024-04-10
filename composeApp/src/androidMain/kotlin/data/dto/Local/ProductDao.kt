@@ -37,14 +37,14 @@ interface ProductDao {
     @Update
     fun changeProductStorage(newProduct: ProductsInStockDbEntity)
 
-//    @Query("DELETE FROM ")
-//    fun deleteProductFromStockById(id: Int)
+    @Query("DELETE FROM ProductsInStock WHERE ordered_product_id = :id")
+    fun deleteProductFromStockById(id: Int)
 
 //    fun getPendingProductsAmount() : Flow<Either<String, Int>>
 
 
-    @Query("SELECT COUNT(*) FROM Products")
-    fun getProductsCount(): Int
+//    @Query("SELECT COUNT(*) FROM Products")
+//    fun getProductsCount(): Int
 
     @Insert
     fun insert(product: ProductsDbEntity)

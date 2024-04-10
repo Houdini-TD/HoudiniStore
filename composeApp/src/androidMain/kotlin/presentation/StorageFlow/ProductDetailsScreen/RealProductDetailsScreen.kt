@@ -6,7 +6,9 @@ import core.network.NetworkComponentContext
 import data.dto.IProductRepository
 import domain.product.ProductEAN
 import domain.product.StoredProduct
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import utils.componentCoroutineScope
 
@@ -33,27 +35,24 @@ class RealProductDetailsScreen(
 
     override fun loadProducts(productEan: ProductEAN) {
         val productList = MutableStateFlow<List<StoredProduct>>(emptyList())
-        coroutineScope.launch {
+        coroutineScope.launch(Dispatchers.IO) {
             productRepository.getProductsByEan(chosenEan).collectRequest(productLoadState, productList)
             if (productLoadState.value == ComponentState.Success)
                 this@RealProductDetailsScreen.productList.value = productList.value.toMutableList()
         }
     }
 
-    override fun saveProductChanged(id: Int, newAmount: Int, newShelf: Int) {
-        val index = productList.value.indexOfFirst { it.id == id }
-        if (index != -1){
-            val oldProduct = productList.value[index]
-            coroutineScope.launch {
-                productRepository.changeProductById(id, oldProduct.copy(amount = newAmount, shelf = newShelf))
-            }
+    override fun updateProduct(updatedProduct: StoredProduct) {
+        productList.value[productList.value.indexOfFirst {it.id == updatedProduct.id}] = updatedProduct
+        coroutineScope.launch(Dispatchers.IO) {
+            productRepository.updateStoredProduct(updatedProduct)
         }
     }
 
     override fun onProductDelete(id: Int) {
         val index = productList.value.indexOfFirst { it.id == id }
+        productList.value = productList.value.apply {this.removeAt(index)}
         if (index != -1){
-            productList.value.removeAt(index)
             coroutineScope.launch{
                 productRepository.deleteProductById(id)
             }
